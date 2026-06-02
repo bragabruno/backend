@@ -1,6 +1,3 @@
-import org.gradle.api.artifacts.VersionCatalogsExtension as VersionCatalogExtensions
-import net.ltgt.gradle.errorprone.errorprone
-
 plugins {
     alias(libs.plugins.spring.boot) apply false
     alias(libs.plugins.dependency.management) apply false
@@ -8,44 +5,41 @@ plugins {
     java
 }
 
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
 subprojects {
     apply(plugin = "java")
     apply(plugin = "net.ltgt.errorprone")
+    apply(plugin = "io.spring.dependency-management")
 
-    group = "com.bragdev"
-    version = "0.0.1-SNAPSHOT"
-
-    java {
+    // Explicitly clamp your monorepo subprojects to use a strict Java 21 compilation container
+    configure<JavaPluginExtension> {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 
-    repositories {
-        mavenCentral()
+    configure<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension> {
+        imports {
+            mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
+        }
     }
 
-    // Safely pull the libraries from the rootProject catalog container
-    val catalog = rootProject.extensions.getByType<VersionCatalogExtensions>().named("libs")
-
     dependencies {
-        compileOnly(catalog.findLibrary("lombok").get())
-        annotationProcessor(catalog.findLibrary("lombok").get())
-        annotationProcessor(catalog.findLibrary("nullaway").get())
-
-        "errorprone"(catalog.findLibrary("errorprone-core").get())
-        "errorprone"(catalog.findLibrary("nullaway").get())
+        compileOnly(rootProject.libs.lombok)
+        annotationProcessor(rootProject.libs.lombok)
+        "errorprone"(rootProject.libs.errorprone.core)
     }
 
     tasks.withType<JavaCompile>().configureEach {
-        // Add "-Xlint:-processing" to turn off warning noise for unclaimed annotations
         options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-processing", "-Werror"))
-
-        plugins.withId("net.ltgt.errorprone") {
-            val errorproneOptions = (options as ExtensionAware).extensions.getByName("errorprone")
-                as net.ltgt.gradle.errorprone.ErrorProneOptions
-
-            errorproneOptions.option("NullAway:AnnotatedPackages", "com.bragdev")
-        }
     }
+}
+
+project(":app") {
+    apply(plugin = "org.springframework.boot")
 }

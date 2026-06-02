@@ -2,12 +2,14 @@ package com.bragdev.frauddetection;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+    ReactiveUserDetailsServiceAutoConfiguration.class
+})
 public class FrauddetectionApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(FrauddetectionApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(FrauddetectionApplication.class, args);
+    }
 }
