@@ -1,0 +1,39 @@
+[versions]
+agp = "8.2.2"
+kotlin = "1.9.22"
+springBoot = "4.0.6"
+dependencyManagement = "1.1.7"
+errorpronePlugin = "4.3.0"
+errorproneCore = "2.36.0"
+nullaway = "0.11.0"
+springdoc = "2.5.0"
+lombok = "1.18.32"
+
+[libraries]
+# Spring Boot Core
+spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+
+# Data & Messaging
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis" }
+spring-boot-starter-kafka = { module = "org.springframework.boot:spring-boot-starter-kafka" }
+postgresql = { module = "org.postgresql:postgresql" }
+
+# Tooling & Code Quality
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorproneCore" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+
+# Testing
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql" }
+testcontainers-kafka = { module = "org.testcontainers:kafka" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
+dependency-management = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }
+errorprone = { id = "net.ltgt.errorprone", version.ref = "errorpronePlugin" }

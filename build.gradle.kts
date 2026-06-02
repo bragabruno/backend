@@ -1,58 +1,51 @@
+import org.gradle.api.artifacts.VersionCatalogsExtension as VersionCatalogExtensions
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
-	java
-	id("org.springframework.boot") version "4.0.6"
-	id("io.spring.dependency-management") version "1.1.7"
+    alias(libs.plugins.spring.boot) apply false
+    alias(libs.plugins.dependency.management) apply false
+    alias(libs.plugins.errorprone) apply false
+    java
 }
 
-group = "com.bragdev"
-version = "0.0.1-SNAPSHOT"
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "net.ltgt.errorprone")
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(26)
-	}
-}
+    group = "com.bragdev"
+    version = "0.0.1-SNAPSHOT"
 
-repositories {
-	mavenCentral()
-}
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
 
-dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-actuator")
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-data-redis")
-	implementation("org.springframework.boot:spring-boot-starter-kafka")
-	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	compileOnly("org.projectlombok:lombok")
-	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
-	runtimeOnly("org.postgresql:postgresql")
-	annotationProcessor("org.projectlombok:lombok")
-	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-	testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-kafka-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-	testCompileOnly("org.projectlombok:lombok")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	testAnnotationProcessor("org.projectlombok:lombok")
+    repositories {
+        mavenCentral()
+    }
 
-//implementation("org.flywaydb:flyway-core")
-//implementation("org.mapstruct:mapstruct")
-//implementation("io.github.resilience4j:resilience4j-spring-boot4")
-//implementation("org.springframework.retry:spring-retry")
-// Testing
-implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui")
-testImplementation("org.springframework.boot:spring-boot-starter-test")
-testImplementation("org.testcontainers:junit-jupiter")
-testImplementation("org.testcontainers:postgresql")
-testImplementation("org.testcontainers:kafka")
-}
+    // Safely pull the libraries from the rootProject catalog container
+    val catalog = rootProject.extensions.getByType<VersionCatalogExtensions>().named("libs")
 
-tasks.withType<Test> {
-	useJUnitPlatform()
+    dependencies {
+        compileOnly(catalog.findLibrary("lombok").get())
+        annotationProcessor(catalog.findLibrary("lombok").get())
+        annotationProcessor(catalog.findLibrary("nullaway").get())
+
+        "errorprone"(catalog.findLibrary("errorprone-core").get())
+        "errorprone"(catalog.findLibrary("nullaway").get())
+    }
+
+    tasks.withType<JavaCompile>().configureEach {
+        // Add "-Xlint:-processing" to turn off warning noise for unclaimed annotations
+        options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-processing", "-Werror"))
+
+        plugins.withId("net.ltgt.errorprone") {
+            val errorproneOptions = (options as ExtensionAware).extensions.getByName("errorprone")
+                as net.ltgt.gradle.errorprone.ErrorProneOptions
+
+            errorproneOptions.option("NullAway:AnnotatedPackages", "com.bragdev")
+        }
+    }
 }
