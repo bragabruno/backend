@@ -3,6 +3,9 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":common"))
+    implementation(project(":security"))
+
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.validation)

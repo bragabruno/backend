@@ -27,6 +27,9 @@ jackson = "2.18.2"
 # Correlation ID
 micrometer = "1.14.2"
 
+# JWT
+jjwt = "0.12.6"
+
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
@@ -68,6 +71,11 @@ jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-dat
 
 # Micrometer (Prometheus metrics)
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+
+# JWT (JJWT)
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 [plugins]
 dependency-management = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }
