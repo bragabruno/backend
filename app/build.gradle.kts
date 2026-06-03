@@ -9,7 +9,6 @@ dependencies {
     implementation(project(":rules"))
     implementation(project(":case-management"))
     implementation(project(":fraud-engine"))
-    implementation(project(":fraud-engine"))
 
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.actuator)
