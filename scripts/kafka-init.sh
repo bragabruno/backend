@@ -12,6 +12,13 @@ TOPICS=(
   "fraud.falsepositive"
   "fraud.model.deployed"
   "fraud.retraining.requested"
+  # Dead-letter topics per consumer
+  "transaction-events.dlq"
+  "transactions.created.dlq"
+  "fraud.scored.dlq"
+  "fraud.review.required.dlq"
+  "fraud.confirmed.dlq"
+  "fraud.falsepositive.dlq"
 )
 
 for topic in "${TOPICS[@]}"; do
