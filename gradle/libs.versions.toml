@@ -30,6 +30,9 @@ micrometer = "1.14.2"
 # JWT
 jjwt = "0.12.6"
 
+# Resilience4j
+resilience4j = "2.2.0"
+
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "springBoot" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
@@ -76,6 +79,10 @@ micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-p
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# Resilience4j
+resilience4j-spring-boot3 = { module = "io.github.resilience4j:resilience4j-spring-boot3", version.ref = "resilience4j" }
+resilience4j-micrometer = { module = "io.github.resilience4j:resilience4j-micrometer", version.ref = "resilience4j" }
 
 [plugins]
 dependency-management = { id = "io.spring.dependency-management", version.ref = "dependencyManagement" }
