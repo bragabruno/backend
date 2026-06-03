@@ -1,5 +1,25 @@
+// Flyway 10 split database support into separate modules; the Gradle plugin
+// resolves them from the buildscript classpath, so Postgres support must be
+// added here for the `flywayMigrate` task to handle jdbc:postgresql URLs.
+buildscript {
+    dependencies {
+        classpath("org.flywaydb:flyway-database-postgresql:${libs.versions.flywayPlugin.get()}")
+    }
+}
+
 plugins {
     id("org.springframework.boot")
+    alias(libs.plugins.flyway)
+}
+
+// Standalone migration runner used by CI (`./gradlew :app:flywayMigrate`).
+// Reads the same SPRING_DATASOURCE_* env the CI job exports, with local-dev
+// defaults; migrations live alongside the app resources.
+flyway {
+    url = System.getenv("SPRING_DATASOURCE_URL") ?: "jdbc:postgresql://localhost:5432/fraud_db"
+    user = System.getenv("SPRING_DATASOURCE_USERNAME") ?: "fraud_user"
+    password = System.getenv("SPRING_DATASOURCE_PASSWORD") ?: "fraud_pass"
+    locations = arrayOf("filesystem:${projectDir}/src/main/resources/db/migration")
 }
 
 dependencies {
