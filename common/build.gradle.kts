@@ -18,6 +18,9 @@ dependencies {
 
     api("io.micrometer:micrometer-core")
 
+    // Required by the transactional outbox relay and Kafka consumer error handler in this module.
+    implementation(libs.spring.boot.starter.kafka)
+
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

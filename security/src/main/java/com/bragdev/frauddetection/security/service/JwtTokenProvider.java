@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -80,8 +81,10 @@ public class JwtTokenProvider {
     }
 
     public Set<Role> extractRoles(String token) {
+        // jjwt deserializes the JSON array claim as a List, so it must be read as List (not Set),
+        // otherwise get(..., Set.class) throws RequiredTypeException.
         @SuppressWarnings("unchecked")
-        Set<String> roleNames = validateToken(token).get("roles", Set.class);
+        List<String> roleNames = validateToken(token).get("roles", List.class);
         if (roleNames == null) {
             return Set.of();
         }
