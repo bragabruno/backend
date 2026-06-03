@@ -5,6 +5,7 @@ import com.bragdev.frauddetection.common.event.TransactionEvent;
 import com.bragdev.frauddetection.common.model.RiskScore;
 import com.bragdev.frauddetection.common.repository.FraudCaseRepository;
 import com.bragdev.frauddetection.common.repository.RiskScoreRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -20,15 +21,20 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * Full event-driven path: publish a transaction event to Kafka and assert the fraud-engine consumer
- * scores it and persists a {@link RiskScore} (and opens a case for the REVIEW outcome). The ml-service
- * is not running in tests, so the {@link com.bragdev.frauddetection.rules.service.MlPredictionClient}
+ * scores it and persists a {@link RiskScore} (and opens a case for the REVIEW outcome). The stub
+ * ml-service is forced down (503), so the {@link com.bragdev.frauddetection.rules.service.MlPredictionClient}
  * circuit breaker trips and scoring proceeds rules-only in degraded mode — exercising the resilience
- * path end to end.
+ * path end to end. See {@link RealtimeScoringE2EIT} for the non-degraded rules+ML path.
  */
 class ScoringPipelineIT extends IntegrationTest {
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @BeforeEach
+    void mlDown() {
+        mlServiceDown();
+    }
 
     @Autowired
     private RiskScoreRepository riskScoreRepository;
