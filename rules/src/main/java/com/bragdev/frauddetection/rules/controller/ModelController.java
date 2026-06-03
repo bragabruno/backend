@@ -3,6 +3,7 @@ package com.bragdev.frauddetection.rules.controller;
 import com.bragdev.frauddetection.common.enums.ModelStatus;
 import com.bragdev.frauddetection.common.model.ModelVersion;
 import com.bragdev.frauddetection.common.repository.ModelVersionRepository;
+import com.bragdev.frauddetection.rules.service.ModelLifecycleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,12 @@ import java.util.UUID;
 public class ModelController {
 
     private final ModelVersionRepository modelVersionRepository;
+    private final ModelLifecycleService modelLifecycleService;
 
-    public ModelController(ModelVersionRepository modelVersionRepository) {
+    public ModelController(ModelVersionRepository modelVersionRepository,
+                           ModelLifecycleService modelLifecycleService) {
         this.modelVersionRepository = modelVersionRepository;
+        this.modelLifecycleService = modelLifecycleService;
     }
 
     @GetMapping
@@ -88,18 +92,9 @@ public class ModelController {
     }
 
     @PostMapping("/{id}/rollback")
-    @Operation(summary = "Rollback a deployed model")
+    @Operation(summary = "Rollback a deployed model, restoring the last-known-good version")
     public ModelVersion rollbackModel(@PathVariable UUID id) {
-        ModelVersion model = modelVersionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Model not found: " + id));
-
-        if (model.getStatus() != ModelStatus.DEPLOYED) {
-            throw new IllegalStateException(
-                    "Model must be DEPLOYED to rollback, current: " + model.getStatus());
-        }
-
-        model.setStatus(ModelStatus.ROLLED_BACK);
-        return modelVersionRepository.save(model);
+        return modelLifecycleService.rollback(id);
     }
 
     public record RegisterModelRequest(
