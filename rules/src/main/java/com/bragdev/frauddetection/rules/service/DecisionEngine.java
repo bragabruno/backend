@@ -35,6 +35,9 @@ public class DecisionEngine {
     @Value("${fraud.decision.threshold.decline:0.7}")
     private double declineThreshold;
 
+    @Value("${fraud.decision.uncertainty.range:0.15}")
+    private double uncertaintyRange;
+
     public DecisionEngine(
             RuleEngine ruleEngine,
             FeatureExtractionService featureExtractionService,
@@ -63,7 +66,7 @@ public class DecisionEngine {
             aggregateScore = (mlWeight * mlResult.fraudProbability()) + (rulesWeight * rulesResult.score());
         }
 
-        Decision decision = determineDecision(aggregateScore);
+        Decision decision = determineDecision(aggregateScore, mlResult);
 
         List<String> reasonCodes = combineReasonCodes(rulesResult.reasonCodes(), mlResult);
 
@@ -99,14 +102,23 @@ public class DecisionEngine {
         return combined;
     }
 
-    private Decision determineDecision(double score) {
+    private Decision determineDecision(double score, MlPredictionClient.MlPredictionResult mlResult) {
         if (score >= declineThreshold) {
             return Decision.DECLINE;
+        }
+        // Route uncertain predictions to review (FRAUD-110)
+        if (!mlResult.degradedMode() && isUncertain(mlResult.fraudProbability())) {
+            log.info("Uncertain prediction (p={}), routing to REVIEW", mlResult.fraudProbability());
+            return Decision.REVIEW;
         }
         if (score >= approveThreshold) {
             return Decision.REVIEW;
         }
         return Decision.APPROVE;
+    }
+
+    private boolean isUncertain(double probability) {
+        return Math.abs(probability - 0.5) <= uncertaintyRange;
     }
 
     public record DecisionResult(
