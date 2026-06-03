@@ -16,6 +16,9 @@
             <customFields>{"service":"${appName}"}</customFields>
             <includeMdcKeyName>correlationId</includeMdcKeyName>
             <includeMdcKeyName>userId</includeMdcKeyName>
+            <!-- Populated by Micrometer Tracing so logs correlate to distributed traces (FRAUD-120). -->
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
             <fieldNames>
                 <timestamp>timestamp</timestamp>
                 <message>message</message>
