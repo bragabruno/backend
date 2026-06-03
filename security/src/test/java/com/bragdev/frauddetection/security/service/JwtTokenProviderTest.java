@@ -17,7 +17,7 @@ class JwtTokenProviderTest {
 
     private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private static final String EMAIL = "test@example.com";
-    private static final Set<Role> ROLES = Set.of(Role.ADMIN, Role.ANALYST);
+    private static final Set<Role> ROLES = Set.of(Role.ADMIN, Role.FRAUD_ANALYST);
 
     @BeforeEach
     void setUp() {
@@ -37,7 +37,7 @@ class JwtTokenProviderTest {
 
         assertThat(token).isNotBlank();
         assertThat(tokenProvider.extractUserId(token)).isEqualTo(USER_ID);
-        assertThat(tokenProvider.extractRoles(token)).containsExactlyInAnyOrder(Role.ADMIN, Role.ANALYST);
+        assertThat(tokenProvider.extractRoles(token)).containsExactlyInAnyOrder(Role.ADMIN, Role.FRAUD_ANALYST);
     }
 
     @Test

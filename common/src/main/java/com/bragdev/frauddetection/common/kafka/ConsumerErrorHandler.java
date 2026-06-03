@@ -11,6 +11,8 @@ import org.springframework.kafka.support.serializer.DeserializationException;
 import org.springframework.util.backoff.BackOff;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.List;
+
 /**
  * Standardized Kafka consumer error handler with retry and DLQ routing.
  * Transient failures are retried with backoff; permanent failures (deserialization errors)
@@ -44,8 +46,8 @@ public class ConsumerErrorHandler implements CommonErrorHandler {
     }
 
     @Override
-    public boolean handleRemaining(Exception thrownException, ConsumerRecord<?, ?> records, Consumer<?, ?> consumer, MessageListenerContainer container) {
-        return delegate.handleRemaining(thrownException, records, consumer, container);
+    public void handleRemaining(Exception thrownException, List<ConsumerRecord<?, ?>> records, Consumer<?, ?> consumer, MessageListenerContainer container) {
+        delegate.handleRemaining(thrownException, records, consumer, container);
     }
 
     @Override

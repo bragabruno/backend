@@ -10,6 +10,7 @@ import com.bragdev.frauddetection.common.event.TransactionEvent;
 import com.bragdev.frauddetection.common.model.Transaction;
 import com.bragdev.frauddetection.common.repository.TransactionRepository;
 import com.bragdev.frauddetection.rules.service.DecisionEngine;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +50,8 @@ class FraudScoringServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new FraudScoringService(decisionEngine, caseService, transactionRepository, kafkaTemplate);
+        service = new FraudScoringService(decisionEngine, caseService, transactionRepository, kafkaTemplate,
+                new SimpleMeterRegistry());
         CompletableFuture<SendResult<String, Object>> future = CompletableFuture.completedFuture(null);
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(future);
     }
