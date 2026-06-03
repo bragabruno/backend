@@ -34,9 +34,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
+                // Probes + scraping are public; the actuator index and all other endpoints require auth (FRAUD-124).
                 .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                .requestMatchers(HttpMethod.GET, "/actuator").permitAll()
 
                 // Transaction ingest: ADMIN and SYSTEM_ACCOUNT only
                 .requestMatchers(HttpMethod.POST, "/api/v1/transactions").hasAnyRole("ADMIN", "SYSTEM_ACCOUNT")
