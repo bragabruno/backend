@@ -30,6 +30,8 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.jackson.datatype.jsr310)
 
+    implementation(libs.logstash.logback.encoder)
+
     implementation(libs.micrometer.registry.prometheus)
 
     runtimeOnly(libs.postgresql)

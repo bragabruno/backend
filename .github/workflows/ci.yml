@@ -1,0 +1,121 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build -x test
+
+      - name: Unit Tests
+        run: ./gradlew test
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/build/reports/tests/'
+
+  integration-test:
+    name: Integration Tests (Testcontainers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Integration Tests
+        run: ./gradlew :app:test --tests "*IT"
+        env:
+          SPRING_PROFILES_ACTIVE: test
+
+      - name: Upload Integration Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: 'app/build/reports/tests/'
+
+  flyway-validate:
+    name: Flyway Validate
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: fraud_db
+          POSTGRES_USER: fraud_user
+          POSTGRES_PASSWORD: fraud_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Flyway Migrate
+        run: ./gradlew :app:flywayMigrate
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/fraud_db
+          SPRING_DATASOURCE_USERNAME: fraud_user
+          SPRING_DATASOURCE_PASSWORD: fraud_pass
+          SPRING_PROFILES_ACTIVE: ci
+
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Check (ErrorProne + NullAway)
+        run: ./gradlew check
