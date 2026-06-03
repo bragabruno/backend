@@ -11,8 +11,27 @@ dependencies {
     implementation(libs.spring.boot.starter.data.redis)
     implementation(libs.spring.boot.starter.kafka)
 
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.database.postgresql)
+
+    implementation(libs.mapstruct)
+    annotationProcessor(libs.mapstruct.processor)
+
+    implementation(libs.springdoc.openapi.starter.webmvc.ui)
+
+    implementation(libs.jackson.databind)
+    implementation(libs.jackson.datatype.jsr310)
+
+    implementation(libs.micrometer.registry.prometheus)
+
     runtimeOnly(libs.postgresql)
+
     testImplementation(libs.spring.boot.starter.test)
+    testImplementation(platform(libs.testcontainers.bom))
+    testImplementation(libs.testcontainers.postgresql)
+    testImplementation(libs.testcontainers.redis)
+    testImplementation(libs.testcontainers.kafka)
+    testImplementation(libs.testcontainers.junit.jupiter)
 }
 
 tasks.withType<org.springframework.boot.gradle.tasks.run.BootRun>().configureEach {

@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///fraud_db?TC_DAEMON=true
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: fraud_user
+    password: fraud_password
+  data:
+    redis:
+      host: localhost
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  flyway:
+    enabled: false
