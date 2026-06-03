@@ -2,6 +2,8 @@ package com.bragdev.frauddetection;
 
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -31,6 +33,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * {@code MlPredictionClient} circuit breaker trips and scoring runs degraded/rules-only).
  */
 @SpringBootTest
+@AutoConfigureMockMvc
+@AutoConfigureObservability // keep tracing on under @AutoConfigureMockMvc so FRAUD-120 propagation is exercised
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class IntegrationTest {
