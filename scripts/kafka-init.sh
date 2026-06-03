@@ -4,6 +4,7 @@ set -e
 BOOTSTRAP=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
 
 TOPICS=(
+  "transaction-events"
   "transactions.created"
   "fraud.scored"
   "fraud.review.required"

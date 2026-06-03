@@ -53,7 +53,7 @@ public class DecisionEngine {
 
         RuleEngine.RuleEvaluationResult rulesResult = ruleEngine.evaluate(transaction, features);
 
-        MlPredictionClient.MlPredictionResult mlResult = mlPredictionClient.predict(features);
+        MlPredictionClient.MlPredictionResult mlResult = mlPredictionClient.predict(transaction, features);
 
         double aggregateScore;
         if (mlResult.degradedMode()) {
@@ -65,7 +65,7 @@ public class DecisionEngine {
 
         Decision decision = determineDecision(aggregateScore);
 
-        List<String> reasonCodes = rulesResult.reasonCodes();
+        List<String> reasonCodes = combineReasonCodes(rulesResult.reasonCodes(), mlResult);
 
         RiskScore riskScore = RiskScore.builder()
                 .transactionId(transaction.getId())
@@ -77,10 +77,26 @@ public class DecisionEngine {
                 .degradedMode(mlResult.degradedMode())
                 .build();
 
-        riskScoreRepository.save(riskScore);
+        RiskScore saved = riskScoreRepository.save(riskScore);
+
+        if (decision == Decision.DECLINE) {
+            featureExtractionService.recordFailedAttempt(transaction.getUserId());
+        }
 
         log.info("Decision {} for transaction {} (score: {})", decision, transaction.getId(), aggregateScore);
-        return new DecisionResult(decision, aggregateScore, rulesResult.reasonCodes(), mlResult.degradedMode());
+        return new DecisionResult(decision, aggregateScore, reasonCodes, mlResult.degradedMode(), saved.getId());
+    }
+
+    /** Rule reason codes plus the ML model's contributing factors (prefixed {@code ML_}) when ML scored. */
+    private static List<String> combineReasonCodes(
+            List<String> ruleReasonCodes, MlPredictionClient.MlPredictionResult mlResult) {
+        List<String> combined = new java.util.ArrayList<>(ruleReasonCodes);
+        if (!mlResult.degradedMode()) {
+            for (String factor : mlResult.contributingFactors()) {
+                combined.add("ML_" + factor);
+            }
+        }
+        return combined;
     }
 
     private Decision determineDecision(double score) {
@@ -97,6 +113,7 @@ public class DecisionEngine {
             Decision decision,
             double score,
             java.util.List<String> reasonCodes,
-            boolean degradedMode
+            boolean degradedMode,
+            java.util.UUID riskScoreId
     ) {}
 }

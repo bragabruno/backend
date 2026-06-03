@@ -1,9 +1,11 @@
 package com.bragdev.frauddetection.security.config;
 
 import com.bragdev.frauddetection.security.filter.JwtAuthenticationFilter;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +16,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@EnableConfigurationProperties(JwtProperties.class)
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -28,24 +32,33 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
-                .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                // Public endpoints
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
+                .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.GET, "/actuator").permitAll()
 
-                .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/v1/users").hasAnyRole("ADMIN", "ANALYST")
-                .requestMatchers(HttpMethod.GET, "/api/v1/users/{id}").hasAnyRole("ADMIN", "ANALYST")
-                .requestMatchers(HttpMethod.PUT, "/api/v1/users/{id}").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/users/{id}").hasRole("ADMIN")
+                // Transaction ingest: ADMIN and SYSTEM_ACCOUNT only
+                .requestMatchers(HttpMethod.POST, "/api/v1/transactions").hasAnyRole("ADMIN", "SYSTEM_ACCOUNT")
+                // Transaction reads: all analyst roles
+                .requestMatchers(HttpMethod.GET, "/api/v1/transactions", "/api/v1/transactions/**")
+                    .hasAnyRole("ADMIN", "FRAUD_ANALYST", "INVESTIGATOR", "AUDITOR")
 
-                .requestMatchers(HttpMethod.POST, "/api/v1/transactions").hasAnyRole("ADMIN", "OPERATOR", "SYSTEM")
-                .requestMatchers(HttpMethod.GET, "/api/v1/transactions").hasAnyRole("ADMIN", "ANALYST", "OPERATOR")
-                .requestMatchers(HttpMethod.GET, "/api/v1/transactions/{id}").hasAnyRole("ADMIN", "ANALYST", "OPERATOR")
+                // Case management reads: all analyst roles
+                .requestMatchers(HttpMethod.GET, "/api/v1/fraud-cases/**")
+                    .hasAnyRole("ADMIN", "FRAUD_ANALYST", "INVESTIGATOR", "AUDITOR")
+                // Case management writes: ADMIN, FRAUD_ANALYST, INVESTIGATOR
+                .requestMatchers(HttpMethod.PUT, "/api/v1/fraud-cases/**")
+                    .hasAnyRole("ADMIN", "FRAUD_ANALYST", "INVESTIGATOR")
+                .requestMatchers(HttpMethod.POST, "/api/v1/fraud-cases/**")
+                    .hasAnyRole("ADMIN", "FRAUD_ANALYST", "INVESTIGATOR")
 
-                .requestMatchers("/api/v1/fraud-cases/**").hasAnyRole("ADMIN", "ANALYST", "OPERATOR")
+                // Risk scores: all analyst roles
+                .requestMatchers(HttpMethod.GET, "/api/v1/risk-scores/**")
+                    .hasAnyRole("ADMIN", "FRAUD_ANALYST", "INVESTIGATOR", "AUDITOR")
 
-                .requestMatchers("/api/v1/risk-scores/**").hasAnyRole("ADMIN", "ANALYST")
+                // Admin: ADMIN only
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
                 .anyRequest().authenticated()
             )

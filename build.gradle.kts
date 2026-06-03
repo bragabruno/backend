@@ -33,10 +33,16 @@ subprojects {
         compileOnly(rootProject.libs.lombok)
         annotationProcessor(rootProject.libs.lombok)
         "errorprone"(rootProject.libs.errorprone.core)
+        // Gradle 9 no longer puts the JUnit Platform launcher on the test runtime classpath automatically.
+        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
     }
 
     tasks.withType<JavaCompile>().configureEach {
         options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-processing", "-Werror"))
+    }
+
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
     }
 }
 

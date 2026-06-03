@@ -18,6 +18,8 @@ public interface FraudCaseRepository extends JpaRepository<FraudCase, UUID> {
 
     Optional<FraudCase> findByTransactionId(UUID transactionId);
 
+    long countByStatus(CaseStatus status);
+
     Page<FraudCase> findByStatus(CaseStatus status, Pageable pageable);
 
     Page<FraudCase> findBySeverity(Severity severity, Pageable pageable);

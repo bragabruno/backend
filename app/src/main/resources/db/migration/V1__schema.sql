@@ -152,8 +152,8 @@ CREATE TABLE audit_events (
     action VARCHAR(100) NOT NULL,
     target_type VARCHAR(50) NOT NULL,
     target_id UUID,
-    before JSONB,
-    after JSONB,
+    before TEXT,
+    after TEXT,
     correlation_id VARCHAR(100),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );

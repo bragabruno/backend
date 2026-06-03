@@ -1,8 +1,10 @@
 package com.bragdev.frauddetection.transactions.service;
 
 import com.bragdev.frauddetection.common.dto.CreateTransactionRequest;
+import com.bragdev.frauddetection.common.dto.PageResponse;
 import com.bragdev.frauddetection.common.dto.TransactionDto;
 import com.bragdev.frauddetection.common.enums.TransactionStatus;
+import com.bragdev.frauddetection.common.event.TransactionEvent;
 import com.bragdev.frauddetection.common.mapper.TransactionMapper;
 import com.bragdev.frauddetection.common.model.Transaction;
 import com.bragdev.frauddetection.common.repository.TransactionRepository;
@@ -10,8 +12,13 @@ import com.bragdev.frauddetection.common.config.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.UUID;
 
@@ -56,17 +63,50 @@ public class TransactionService {
         Transaction saved = transactionRepository.save(transaction);
         log.info("Transaction created: {}", saved.getIdempotencyKey());
 
-        @SuppressWarnings("FutureReturnValueIgnored")
-        var ignored = kafkaTemplate.send(TRANSACTION_EVENTS_TOPIC, saved.getId().toString(), saved)
-                .whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        log.error("Failed to publish transaction event: {}", saved.getId(), ex);
-                    } else {
-                        log.debug("Transaction event published to Kafka: {}", saved.getId());
-                    }
-                });
+        publishAfterCommit(TransactionEvent.from(saved));
 
         return transactionMapper.toDto(saved);
+    }
+
+    /**
+     * Publishes the transaction event only once the surrounding DB transaction has committed, so a
+     * fraud-engine consumer can never observe the event before the row is durably persisted (the
+     * classic publish-before-commit race). Falls back to an immediate send if no transaction is
+     * active.
+     */
+    private void publishAfterCommit(TransactionEvent event) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    send(event);
+                }
+            });
+        } else {
+            send(event);
+        }
+    }
+
+    private void send(TransactionEvent event) {
+        @SuppressWarnings("FutureReturnValueIgnored")
+        var ignored = kafkaTemplate.send(TRANSACTION_EVENTS_TOPIC, event.transactionId().toString(), event)
+                .whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        log.error("Failed to publish transaction event: {}", event.transactionId(), ex);
+                    } else {
+                        log.debug("Transaction event published to Kafka: {}", event.transactionId());
+                    }
+                });
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<TransactionDto> listTransactions(
+            TransactionStatus status, UUID userId, int page, int size) {
+        Page<TransactionDto> result = transactionRepository
+                .findByFilters(status, userId, null,
+                        PageRequest.of(page, size, Sort.by("createdAt").descending()))
+                .map(transactionMapper::toDto);
+        return PageResponse.of(result.getContent(), result.getNumber(), result.getSize(), result.getTotalElements());
     }
 
     @Transactional(readOnly = true)

@@ -16,6 +16,8 @@ dependencies {
     api(libs.jackson.databind)
     api(libs.jackson.datatype.jsr310)
 
+    api("io.micrometer:micrometer-core")
+
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 }

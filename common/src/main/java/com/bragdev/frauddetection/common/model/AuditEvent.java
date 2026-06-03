@@ -3,8 +3,6 @@ package com.bragdev.frauddetection.common.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -34,12 +32,11 @@ public class AuditEvent {
     @Column(name = "target_id")
     private UUID targetId;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    // Human-readable audit notes (free text), not structured JSON.
+    @Column(columnDefinition = "text")
     private String before;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "text")
     private String after;
 
     @Column(name = "correlation_id")

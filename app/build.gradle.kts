@@ -7,6 +7,9 @@ dependencies {
     implementation(project(":security"))
     implementation(project(":transactions"))
     implementation(project(":rules"))
+    implementation(project(":case-management"))
+    implementation(project(":fraud-engine"))
+    implementation(project(":fraud-engine"))
 
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.spring.boot.starter.actuator)
@@ -34,7 +37,6 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.postgresql)
-    testImplementation(libs.testcontainers.redis)
     testImplementation(libs.testcontainers.kafka)
     testImplementation(libs.testcontainers.junit.jupiter)
 }
