@@ -48,6 +48,9 @@ class RealtimeScoringE2EIT extends IntegrationTest {
             "fraud_probability":0.9,"risk_level":"HIGH","model_version":"xgb-e2e-test",\
             "contributing_factors":["HIGH_AMOUNT","NEW_DEVICE"]}""";
 
+    @Autowired(required = false)
+    private io.micrometer.tracing.Tracer tracer;
+
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -60,6 +63,12 @@ class RealtimeScoringE2EIT extends IntegrationTest {
     @BeforeEach
     void mlUp() {
         mlServiceRespondsWith(PREDICT_RESPONSE);
+    }
+
+    @Test
+    void distributedTracingIsAutoConfigured() {
+        // FRAUD-120: the OpenTelemetry tracer must be wired so HTTP + Kafka boundaries are observed.
+        assertThat(tracer).as("Micrometer OpenTelemetry Tracer should be auto-configured").isNotNull();
     }
 
     @Test
@@ -104,36 +113,46 @@ class RealtimeScoringE2EIT extends IntegrationTest {
                     .contains("\"new_device\":");
 
             // The terminal fraud.scored event is published with the final decision.
-            String scoredPayload = awaitScoredEvent(scoredConsumer, transactionId);
-            assertThat(scoredPayload)
+            ConsumerRecord<String, String> scored = awaitScoredEvent(scoredConsumer, transactionId);
+            assertThat(scored.value())
                     .contains("\"decision\":\"DECLINE\"")
                     .contains("\"degradedMode\":false");
+            // FRAUD-120: trace context propagates across the Kafka boundary — the W3C traceparent
+            // header rides along, so ingest -> score -> fraud.scored share one distributed trace.
+            assertThat(scored.headers().lastHeader("traceparent"))
+                    .as("fraud.scored should carry a W3C traceparent header")
+                    .isNotNull();
         }
     }
 
     private KafkaConsumer<String, String> scoredConsumer() {
+        return consumerFor("fraud.scored");
+    }
+
+    private KafkaConsumer<String, String> consumerFor(String topic) {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "e2e-fraud-scored-" + UUID.randomUUID());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "e2e-" + topic + "-" + UUID.randomUUID());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(List.of("fraud.scored"));
+        consumer.subscribe(List.of(topic));
         return consumer;
     }
 
-    private static String awaitScoredEvent(KafkaConsumer<String, String> consumer, UUID transactionId) {
-        AtomicReference<String> payload = new AtomicReference<>();
+    private static ConsumerRecord<String, String> awaitScoredEvent(
+            KafkaConsumer<String, String> consumer, UUID transactionId) {
+        AtomicReference<ConsumerRecord<String, String>> match = new AtomicReference<>();
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
             for (ConsumerRecord<String, String> record : records) {
                 if (transactionId.toString().equals(record.key())) {
-                    payload.set(record.value());
+                    match.set(record);
                 }
             }
-            assertThat(payload.get()).isNotNull();
+            assertThat(match.get()).isNotNull();
         });
-        return payload.get();
+        return match.get();
     }
 }

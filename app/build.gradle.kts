@@ -33,6 +33,10 @@ dependencies {
 
     implementation(libs.micrometer.registry.prometheus)
 
+    // Distributed tracing (FRAUD-120): OpenTelemetry bridge + OTLP exporter, BOM-managed versions.
+    implementation(libs.micrometer.tracing.bridge.otel)
+    implementation(libs.opentelemetry.exporter.otlp)
+
     runtimeOnly(libs.postgresql)
 
     testImplementation(libs.spring.boot.starter.test)
