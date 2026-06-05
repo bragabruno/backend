@@ -1,0 +1,50 @@
+name: CodeQL (SAST)
+
+# Static application security testing (FRAUD-129). Analyzes the Java/Kotlin sources for
+# security vulnerabilities and surfaces findings in the repository Security tab.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly full scan (Mondays 06:00 UTC) to catch newly-published query rules.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (java-kotlin)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java-kotlin
+          # security-extended adds higher-signal security queries beyond the default suite.
+          queries: security-extended
+
+      # Manual build (CodeQL must observe compilation of every module to build its database).
+      - name: Compile
+        run: ./gradlew assemble --no-daemon
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:java-kotlin"
