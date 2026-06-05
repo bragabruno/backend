@@ -37,7 +37,7 @@ jjwt = "0.12.6"
 resilience4j = "2.2.0"
 
 # Logstash Logback Encoder
-logstash-logback = "8.0"
+logstash-logback = "9.0"
 
 # MockWebServer (OkHttp)
 mockwebserver = "4.12.0"
