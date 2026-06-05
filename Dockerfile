@@ -2,7 +2,7 @@
 
 # Stage 1: Build
 # Base pinned by digest (eclipse-temurin:21-jdk-alpine).
-FROM eclipse-temurin:21-jdk-alpine@sha256:4fb80de7aeb277ad949cfbe89b4f504e50bb34c57fd908c5825236473d71e986 AS builder
+FROM eclipse-temurin:25-jdk-alpine@sha256:30d9f87d702c2c1c601ed0d31e0c88ea1ea474ee7676cda7b7a59e759181c4dd AS builder
 WORKDIR /workspace
 
 COPY gradlew gradlew.bat ./
@@ -18,7 +18,7 @@ RUN ./gradlew --no-daemon --warning-mode=all :app:bootJar
 
 # Stage 2: Runtime
 # Base pinned by digest (eclipse-temurin:21-jre-alpine).
-FROM eclipse-temurin:21-jre-alpine@sha256:704db3c40204a44f471191446ddd9cda5d60dab40f0e15c6507b815ed897238b
+FROM eclipse-temurin:25-jre-alpine@sha256:c707c0d18cb9e8556380719f80d96a7529d0746fbb42143893949b98ed2f8943
 WORKDIR /app
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
