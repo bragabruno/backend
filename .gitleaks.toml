@@ -1,0 +1,15 @@
+# gitleaks configuration (FRAUD-128). Extends the default rule set and allowlists the repo's
+# known test fixtures so the secret-scan gate blocks real leaks without crying wolf.
+title = "fraud-backend secret scan"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known non-secret test fixtures / placeholders"
+regexes = [
+  # BCrypt hash of the literal password "password123" used by the seeded demo users (V2 seed).
+  '''\$2a\$10\$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy''',
+  # Static HMAC signing key used only by JwtTokenProvider unit tests.
+  '''test-secret-key-must-be-at-least-32-bytes-long-for-hmac''',
+]
