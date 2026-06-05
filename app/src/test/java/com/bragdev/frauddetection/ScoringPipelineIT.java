@@ -57,7 +57,7 @@ class ScoringPipelineIT extends IntegrationTest {
                 "BR",
                 Instant.parse("2026-06-03T00:00:00Z"));
 
-        kafkaTemplate.send("transaction-events", transactionId.toString(), event).join();
+        kafkaTemplate.send("transactions.created", transactionId.toString(), event).join();
 
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             Optional<RiskScore> riskScore = riskScoreRepository.findByTransactionId(transactionId);

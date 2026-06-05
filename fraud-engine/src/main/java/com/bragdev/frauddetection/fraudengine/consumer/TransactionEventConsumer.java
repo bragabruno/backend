@@ -8,7 +8,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 /**
- * Consumes {@code transaction-events} and drives the fraud-scoring pipeline. This is the
+ * Consumes {@code transactions.created} and drives the fraud-scoring pipeline. This is the
  * event-driven entry point of the Fraud Detection Service: the {@code transactions} module
  * publishes here after a transaction is persisted, and scoring happens asynchronously.
  */
@@ -23,7 +23,7 @@ public class TransactionEventConsumer {
         this.fraudScoringService = fraudScoringService;
     }
 
-    @KafkaListener(topics = "transaction-events", groupId = "${spring.kafka.consumer.group-id:fraud-detection-group}")
+    @KafkaListener(topics = "transactions.created", groupId = "${spring.kafka.consumer.group-id:fraud-detection-group}")
     public void onTransactionEvent(TransactionEvent event) {
         log.info("Scoring transaction {}", event.transactionId());
         fraudScoringService.score(event);

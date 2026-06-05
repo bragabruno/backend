@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Immutable event published to the {@code transaction-events} topic after a transaction is
+ * Immutable event published to the {@code transactions.created} topic after a transaction is
  * persisted. Carries the full transaction snapshot so the fraud-engine consumer can score
  * without reading back from the database (removing the publish-before-commit race that a
  * bare id would introduce).

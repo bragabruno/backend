@@ -4,7 +4,6 @@ set -e
 BOOTSTRAP=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
 
 TOPICS=(
-  "transaction-events"
   "transactions.created"
   "fraud.scored"
   "fraud.review.required"
@@ -13,7 +12,6 @@ TOPICS=(
   "fraud.model.deployed"
   "fraud.retraining.requested"
   # Dead-letter topics per consumer
-  "transaction-events.dlq"
   "transactions.created.dlq"
   "fraud.scored.dlq"
   "fraud.review.required.dlq"

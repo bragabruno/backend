@@ -6,6 +6,7 @@ dependencies {
     api(libs.spring.boot.starter.webmvc)
     api(libs.spring.boot.starter.data.jpa)
     api(libs.spring.boot.starter.validation)
+    api(libs.spring.boot.starter.kafka)
 
     api(libs.flyway.core)
     api(libs.flyway.database.postgresql)
