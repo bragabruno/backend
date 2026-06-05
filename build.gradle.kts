@@ -29,6 +29,17 @@ subprojects {
         }
     }
 
+    configurations.all {
+        resolutionStrategy.eachDependency {
+            // Remediate CVE-2026-41293 / 43512 / 43515 (CRITICAL): the Spring Boot 3.5.14 BOM pins
+            // embedded Tomcat 10.1.54; force the patched 10.1.55 (surfaced by the FRAUD-130 SCA gate).
+            if (requested.group == "org.apache.tomcat.embed") {
+                useVersion("10.1.55")
+                because("CVE-2026-41293/43512/43515 fixed in 10.1.55")
+            }
+        }
+    }
+
     dependencies {
         compileOnly(rootProject.libs.lombok)
         annotationProcessor(rootProject.libs.lombok)
