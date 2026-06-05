@@ -27,15 +27,24 @@ public class MlPredictionClient {
 
     private static final Logger log = LoggerFactory.getLogger(MlPredictionClient.class);
     private static final String CIRCUIT_BREAKER_NAME = "mlService";
+    static final String API_KEY_HEADER = "X-API-Key";
 
     private final RestClient restClient;
 
     public MlPredictionClient(
-            @Value("${fraud.ml-service.base-url:http://localhost:8000}") String baseUrl
+            @Value("${fraud.ml-service.base-url:http://localhost:8000}") String baseUrl,
+            @Value("${fraud.ml-service.api-key:}") String apiKey
     ) {
-        this.restClient = RestClient.builder()
-                .baseUrl(baseUrl)
-                .build();
+        RestClient.Builder builder = RestClient.builder().baseUrl(baseUrl);
+        // Service-to-service auth (FRAUD-127): when a shared credential is configured, every call to
+        // the ml-service carries it so the ml-service can reject unauthenticated callers. Transport
+        // mTLS and the ml-service-side validation are handled at the infra / ml-service layer.
+        if (apiKey != null && !apiKey.isBlank()) {
+            builder.defaultHeader(API_KEY_HEADER, apiKey);
+        } else {
+            log.warn("fraud.ml-service.api-key is not set — calls to the ml-service are unauthenticated");
+        }
+        this.restClient = builder.build();
     }
 
     @CircuitBreaker(name = CIRCUIT_BREAKER_NAME, fallbackMethod = "fallbackPredict")
