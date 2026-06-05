@@ -7,7 +7,7 @@ postgresql = "42.7.2"
 # Pull a highly modern analyzer and processing combination for Java 21+ stability
 errorproneCore = "2.23.0"
 nullaway = "0.10.10"
-lombok = "1.18.36"
+lombok = "1.18.46"
 
 # Testcontainers
 testcontainers = "1.20.4"
