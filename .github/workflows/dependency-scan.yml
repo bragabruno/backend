@@ -1,0 +1,68 @@
+name: Dependency Scan (SCA)
+
+# Software composition analysis (FRAUD-130): builds the runtime image and scans it with Trivy
+# for known CVEs in both the JVM application jars and the base-OS packages. Critical, fixable
+# CVEs fail the build; all findings are uploaded to the Security tab and an SBOM is published.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 2'
+
+permissions:
+  contents: read
+
+jobs:
+  image-scan:
+    name: Trivy image scan + SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build runtime image
+        run: docker build -t fraud-backend:scan .
+
+      # Report all CRITICAL/HIGH findings to the Security tab (non-blocking).
+      - name: Trivy scan (SARIF)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: fraud-backend:scan
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Upload Trivy SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Generate SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: fraud-backend:scan
+          format: cyclonedx
+          output: sbom.cdx.json
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+
+      # Gate: fail the build on fixable CRITICAL CVEs.
+      - name: Fail on critical CVEs
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: fraud-backend:scan
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          format: table
