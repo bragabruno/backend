@@ -26,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class MlPredictionClientTest {
 
+    private static final String API_KEY = "test-ml-service-key";
+
     private MockWebServer server;
     private MlPredictionClient client;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -34,7 +36,7 @@ class MlPredictionClientTest {
     void setUp() throws Exception {
         server = new MockWebServer();
         server.start();
-        client = new MlPredictionClient(server.url("/").toString());
+        client = new MlPredictionClient(server.url("/").toString(), API_KEY);
     }
 
     @AfterEach
@@ -80,6 +82,8 @@ class MlPredictionClientTest {
 
         RecordedRequest request = server.takeRequest();
         assertThat(request.getPath()).isEqualTo("/predict");
+        // FRAUD-127: the configured service credential is sent on every call.
+        assertThat(request.getHeader(MlPredictionClient.API_KEY_HEADER)).isEqualTo(API_KEY);
         JsonNode body = mapper.readTree(request.getBody().readUtf8());
         assertThat(body.get("transaction_id").asText()).isEqualTo(txnId.toString());
         assertThat(body.get("new_device").asBoolean()).isTrue();
