@@ -27,7 +27,7 @@ flywayDbPostgres = "11.20.3"
 mapstruct = "1.6.3"
 
 # OpenAPI
-springdoc = "2.8.4"
+springdoc = "3.0.3"
 
 # Jackson (jsonb support)
 jackson = "2.18.2"
