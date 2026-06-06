@@ -16,7 +16,7 @@ testcontainers = "1.20.4"
 flyway = "10.20.1"
 # Flyway Gradle plugin tracks a newer line than the runtime libs because
 # Gradle 9 support (removal of JavaPluginConvention) only exists in 11.x+.
-flywayPlugin = "11.20.3"
+flywayPlugin = "12.8.1"
 # DB support module loaded on the Flyway Gradle plugin's *buildscript* classpath.
 # Must match the plugin's bundled flyway-core line (11.x), NOT the runtime `flyway`
 # (10.x) — Flyway's Gradle task resolves DB plugins from the build classpath. Kept as
