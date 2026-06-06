@@ -26,7 +26,7 @@ import java.util.UUID;
 public class TransactionService {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
-    private static final String TRANSACTION_EVENTS_TOPIC = "transaction-events";
+    private static final String TRANSACTION_EVENTS_TOPIC = "transactions.created";
 
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;

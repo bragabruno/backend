@@ -86,7 +86,7 @@ class RealtimeScoringE2EIT extends IntegrationTest {
                 Instant.parse("2026-06-03T00:00:00Z"));
 
         try (KafkaConsumer<String, String> scoredConsumer = scoredConsumer()) {
-            kafkaTemplate.send("transaction-events", transactionId.toString(), event).join();
+            kafkaTemplate.send("transactions.created", transactionId.toString(), event).join();
 
             await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
                 Optional<RiskScore> riskScore = riskScoreRepository.findByTransactionId(transactionId);

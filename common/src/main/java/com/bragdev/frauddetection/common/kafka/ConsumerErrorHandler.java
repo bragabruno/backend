@@ -1,5 +1,6 @@
 package com.bragdev.frauddetection.common.kafka;
 
+import java.util.List;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;

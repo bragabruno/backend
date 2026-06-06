@@ -28,8 +28,7 @@ Kafka supports three delivery guarantees:
 
 | Topic | Dedupe Key | Consumer Idempotency |
 |-------|-----------|---------------------|
-| `transaction-events` | `transactionId` | TransactionService uses `idempotencyKey` |
-| `transactions.created` | `transactionId` | FraudScoringService checks `transactionId` |
+| `transactions.created` | `transactionId` | TransactionService publishes with `idempotencyKey`; FraudScoringService checks `transactionId` |
 | `fraud.scored` | `transactionId` | Downstream consumers must dedupe |
 | `fraud.review.required` | `transactionId` | CaseService uses `transactionId` as unique key |
 | `fraud.confirmed` | `transactionId` | Label is append-only, dedupe by (transactionId, label) |
