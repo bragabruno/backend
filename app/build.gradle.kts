@@ -3,7 +3,7 @@
 // added here for the `flywayMigrate` task to handle jdbc:postgresql URLs.
 buildscript {
     dependencies {
-        classpath("org.flywaydb:flyway-database-postgresql:${libs.versions.flywayPlugin.get()}")
+        classpath("org.flywaydb:flyway-database-postgresql:${libs.versions.flywayDbPostgres.get()}")
     }
 }
 
