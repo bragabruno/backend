@@ -36,7 +36,7 @@ jackson = "2.18.2"
 micrometer = "1.14.2"
 
 # JWT
-jjwt = "0.12.6"
+jjwt = "0.13.0"
 
 # Resilience4j
 resilience4j = "2.2.0"
