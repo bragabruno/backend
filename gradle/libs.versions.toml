@@ -33,7 +33,7 @@ springdoc = "2.8.4"
 jackson = "2.18.2"
 
 # Correlation ID
-micrometer = "1.14.2"
+micrometer = "1.16.5"
 
 # JWT
 jjwt = "0.12.6"
