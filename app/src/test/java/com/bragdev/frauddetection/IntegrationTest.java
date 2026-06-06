@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * them down at JVM exit, so no explicit stop is needed.
  *
  * <p>All ITs share a single Spring context (same configuration), hence a single fraud-engine Kafka
- * consumer — avoiding competing-consumer races on {@code transaction-events}. The ml-service is
+ * consumer — avoiding competing-consumer races on {@code transactions.created}. The ml-service is
  * stubbed by one in-process {@link HttpServer} whose {@code POST /predict} behaviour each test sets
  * per-method via {@link #mlServiceRespondsWith}/{@link #mlServiceDown} (default: down → 503, so the
  * {@code MlPredictionClient} circuit breaker trips and scoring runs degraded/rules-only).
