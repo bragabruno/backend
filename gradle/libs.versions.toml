@@ -39,7 +39,7 @@ micrometer = "1.14.2"
 jjwt = "0.12.6"
 
 # Resilience4j
-resilience4j = "2.2.0"
+resilience4j = "2.4.0"
 
 # Logstash Logback Encoder
 logstash-logback = "8.0"
